@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Tricentis.Automation.Creation;
@@ -9,6 +12,7 @@ using Tricentis.Automation.XScan.Model;
 using Tricentis.Automation.XScan.Result.Controller;
 using Tricentis.Automation.XScan.Result.Tasks.Configs;
 using Tricentis.Automation.XScan.Result.Tasks.Html;
+using Tricentis.CrowdIQ.Scanner.ContractObjects.Recomendation;
 
 namespace Tricentis.CrowdIQ.Scanner.XScan
 {
@@ -25,6 +29,32 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             IHtmlDocumentTechnical doc;
             ScanRepresentationNode srNode = resultNode as ScanRepresentationNode;
 
+            String url = "", urlParameters = "";
+
+            // Retrieve information/hints
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri(url);
+
+            // Add an Accept header for JSON format.
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // List data response.
+            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call!
+            if (response.IsSuccessStatusCode)
+            {
+                var dataObjects = response.Content.<IEnumerable<RecomendationResponse>>().Result;
+                foreach (var d in dataObjects)
+                {
+                    Console.WriteLine("{0}", d.Name);
+                }
+            }
+            else
+            {
+                Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
+            }
+
+
+
             // Only applicable for Document object - so that it does not repeat for every element
             if (srNode != null && srNode.Representation != null && srNode.Representation.Adapter != null)
             {
@@ -37,13 +67,6 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                     return false;
                 }
             }
-
-            // Retrieve information/hints
-
-            #region Body Class
-
-            
-            #endregion
 
 
             // Look for recommendations
