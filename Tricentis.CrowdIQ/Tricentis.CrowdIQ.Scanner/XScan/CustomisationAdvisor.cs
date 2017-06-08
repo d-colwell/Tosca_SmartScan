@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Tricentis.Automation.Creation;
 using Tricentis.Automation.Engines.Technicals.Html;
 using Tricentis.Automation.XScan.Model;
@@ -28,6 +29,8 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode));
         }
 
+        private String host = @"http://localhost:50826/";
+
         private bool RecommendCustomisations(IScanNode resultNode)
         {
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
@@ -37,9 +40,9 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
 
             #region  Retrieve information/hints
-            String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
+            String urlParameters = "/api/recommendation/?engine=html";
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(url);
+            client.BaseAddress = new Uri(host);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             try
             {
@@ -105,12 +108,13 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
 
             }
             #endregion
+
             return true;
         }
 
         private void DownloadCustomisation(Guid id, string name)
         {
-            var uri = new Uri($"http://localhost:50826/api/recommendation/{id}");
+            var uri = new Uri(host + $"/api/recommendation/{id}");
 
             HttpClient client = new HttpClient();
             var result = client.GetAsync(uri).Result;
