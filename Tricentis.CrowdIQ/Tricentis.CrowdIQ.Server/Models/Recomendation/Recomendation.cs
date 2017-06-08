@@ -11,5 +11,6 @@ namespace Tricentis.CrowdIQ.Server.Models.Recomendation
         public string engine { get; set; }
         public string customizationName { get; set; }
         public string IdentificationJavascript { get; set; }
+        public string downloadURI { get; set; }
     }
 }
