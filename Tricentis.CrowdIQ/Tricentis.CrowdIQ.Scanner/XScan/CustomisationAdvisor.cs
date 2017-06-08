@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -29,10 +30,12 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
         private bool RecommendCustomisations(IScanNode resultNode, ref IResultController controller)
         {
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
+            if (doc == null)
+                return false;
             IEnumerable<RecommendationResponse> recommendationResponses = null;
             List<RecommendationResponse> successfulRecommendations = null;
 
-            String url = "http://localhost:53902/", urlParameters = "/api/recommendation/?engine=html";
+            String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
 
             #region  Retrieve information/hints
             HttpClient client = new HttpClient();
@@ -78,7 +81,17 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 ParameterizedThreadStart pts = new ParameterizedThreadStart(ThreadStart);
                 Thread t = new Thread(ThreadStart);
                 t.SetApartmentState(ApartmentState.STA);
-                t.Start(null);
+                Controls.WindowParameters winParam = new Controls.WindowParameters
+                {
+                    Customisations = successfulRecommendations.Select(
+                        r => new Controls.Customisation
+                        {
+                            ID = r.id,
+                            Name = r.customizationName,
+                            Download = false
+                        }).ToList()
+                };
+                t.Start(winParam);
                 t.Join();
             }
             #endregion
@@ -88,7 +101,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
     {
         //if (app == null)
         //    app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
-        var configWindow = new CrowdIQ.Controls.MainWindow();
+        var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
         //app.Run(configWindow);
         configWindow.ShowDialog();
     }
