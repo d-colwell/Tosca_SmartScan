@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Tricentis.CrowdIQ.Server.Models.Recomendation
+namespace Tricentis.CrowdIQ.Server.Models.Recommendation
 {
 
-    public class GetRecomendationsRequest
+    public class GetRecommendationsRequest
     {
         [JsonProperty(Required =Required.Always)]
         public string engine { get; set; }

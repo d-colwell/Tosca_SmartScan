@@ -10,7 +10,7 @@ namespace Tricentis.CrowdIQ.Server.Data
     {
         private static volatile MockDataProvider instance;
         private static object syncRoot = new Object();
-        private RecomendationProvider _recomendation;
+        private RecommendationProvider _recommendation;
 
         private MockDataProvider() { }
 
@@ -31,13 +31,13 @@ namespace Tricentis.CrowdIQ.Server.Data
             }
         }
 
-        public Mock.RecomendationProvider Recomendation
+        public Mock.RecommendationProvider Recommendation
         {
             get
             {
-                if (_recomendation == null)
-                    _recomendation = new Mock.RecomendationProvider();
-                return _recomendation;
+                if (_recommendation == null)
+                    _recommendation = new Mock.RecommendationProvider();
+                return _recommendation;
             }
         }
 

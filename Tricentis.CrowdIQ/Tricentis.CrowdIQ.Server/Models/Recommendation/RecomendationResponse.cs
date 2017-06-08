@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Tricentis.CrowdIQ.Server.Models.Recomendation
+namespace Tricentis.CrowdIQ.Server.Models.Recommendation
 {
-    public class RecomendationResponse
+    public class RecommendationResponse
     {
         public Guid id { get; set; }
         public string engine { get; set; }

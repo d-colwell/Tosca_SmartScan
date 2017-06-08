@@ -2,25 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Tricentis.CrowdIQ.Server.Models.Recomendation;
+using Tricentis.CrowdIQ.Server.Models.Recommendation;
 
 namespace Tricentis.CrowdIQ.Server.Data.Mock
 {
-    public class RecomendationProvider
+    public class RecommendationProvider
     {
-        private List<RecomendationResponse> recomendations = new List<RecomendationResponse>
+        private List<RecommendationResponse> recommendations = new List<RecommendationResponse>
         {
-            new RecomendationResponse
+            new RecommendationResponse
             {
                 customizationName="Extended JavaScript UI",
                 engine="html",
                 id = Guid.NewGuid(),
-                IdentificationJavascript="some JS here"
+                IdentificationJavascript="typeof Ext != \"undefined\";"
             }
         };
-        public List<RecomendationResponse> Recomendations
+        public List<RecommendationResponse> Recomendations
         {
-            get { return recomendations; }
+            get { return recommendations; }
         } 
     }
 }
