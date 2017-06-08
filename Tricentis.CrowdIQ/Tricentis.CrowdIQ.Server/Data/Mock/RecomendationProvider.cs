@@ -10,7 +10,13 @@ namespace Tricentis.CrowdIQ.Server.Data.Mock
     {
         private List<RecomendationResponse> recomendations = new List<RecomendationResponse>
         {
-
+            new RecomendationResponse
+            {
+                customizationName="Extended JavaScript UI",
+                engine="html",
+                id = Guid.NewGuid(),
+                IdentificationJavascript="some JS here"
+            }
         };
         public List<RecomendationResponse> Recomendations
         {
