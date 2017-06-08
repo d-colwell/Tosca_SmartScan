@@ -33,7 +33,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             if (doc == null)
                 return false;
             IEnumerable<RecommendationResponse> recommendationResponses = null;
-            List<RecommendationResponse> successfulRecommendations = null;
+            List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
 
             String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
 
@@ -63,20 +63,20 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             #endregion
 
             #region Look for recommendations
-            successfulRecommendations = recommendationResponses.ToList<RecommendationResponse>();
             foreach (RecommendationResponse rec in recommendationResponses)
             {
                 String result = doc.EntryPoint.GetJavaScriptResult(rec.IdentificationJavascript);
-                Boolean isValid = false;
-                if (!Boolean.TryParse(result, out isValid))
+                Boolean isValid;
+                Boolean.TryParse(result, out isValid);
+                if (isValid)
                 {
-                    successfulRecommendations.RemoveAll(r => r.id == rec.id);
+                    successfulRecommendations.Add(rec);
                 }
             }
             #endregion
 
             #region Show recommendations (somehow)
-            if(successfulRecommendations.Any())
+            if (successfulRecommendations.Any())
             {
                 ParameterizedThreadStart pts = new ParameterizedThreadStart(ThreadStart);
                 Thread t = new Thread(ThreadStart);
@@ -93,17 +93,23 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 };
                 t.Start(winParam);
                 t.Join();
+
+                
+                t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
+                t.Abort();                          // Abort and let thread handle termination of itself
+                GC.Collect();                       // Now call GC
             }
             #endregion
             return true;
         }
-    private void ThreadStart(object target)
-    {
-        //if (app == null)
-        //    app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
-        var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
-        //app.Run(configWindow);
-        configWindow.ShowDialog();
+
+        private void ThreadStart(object target)
+        {
+            //if (app == null)
+            //    app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
+            var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
+            //app.Run(configWindow);
+            configWindow.ShowDialog();
+        }
     }
-}
 }
