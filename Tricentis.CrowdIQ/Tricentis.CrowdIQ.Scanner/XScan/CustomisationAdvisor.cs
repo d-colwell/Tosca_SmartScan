@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -16,7 +17,7 @@ using Tricentis.CrowdIQ.Scanner.ContractObjects.Recomendation;
 
 namespace Tricentis.CrowdIQ.Scanner.XScan
 {
-    [SupportedScanResultTaskConfig(typeof(DefaultScanTaskConfig))]
+    [SupportedScanResultTaskConfig(typeof(MapDefaultIdsTaskConfig))]
     public class CustomisationAdvisor : HtmlMapDefaultIdsTask
     {
         public CustomisationAdvisor(MapDefaultIdsTaskConfig taskConfig, IResultController controller, Validator validator) : base(taskConfig, controller, validator)
@@ -26,56 +27,45 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
 
         private bool RecommendCustomisations(IScanNode resultNode)
         {
-            IHtmlDocumentTechnical doc;
-            ScanRepresentationNode srNode = resultNode as ScanRepresentationNode;
+            IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
+            IEnumerable<RecommendationResponse> recommendationResponses = null;
+            List<RecommendationResponse> successfulRecommendations = null;
 
-            String url = "", urlParameters = "";
+            String url = "http://localhost:53902/", urlParameters = "/api/recommendation/?engine=html";
 
-            // Retrieve information/hints
+
+            #region  Retrieve information/hints
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(url);
-
-            // Add an Accept header for JSON format.
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            // List data response.
-            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call!
+            HttpResponseMessage response = client.GetAsync(urlParameters).Result;
             if (response.IsSuccessStatusCode)
             {
-                var dataObjects = response.Content.<IEnumerable<RecomendationResponse>>().Result;
-                foreach (var d in dataObjects)
-                {
-                    Console.WriteLine("{0}", d.Name);
-                }
+                String responseContent = response.Content.ReadAsStringAsync().Result;
+                recommendationResponses = JsonConvert.DeserializeObject<IEnumerable<RecommendationResponse>>(responseContent);
             }
             else
             {
-                Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
+                // Alert user... or maybe do nothing
+                return false;
             }
+            #endregion
 
-
-
-            // Only applicable for Document object - so that it does not repeat for every element
-            if (srNode != null && srNode.Representation != null && srNode.Representation.Adapter != null)
+            #region Look for recommendations
+            successfulRecommendations = recommendationResponses.ToList<RecommendationResponse>();
+            foreach (RecommendationResponse rec in recommendationResponses)
             {
-                try
+                String result = doc.EntryPoint.GetJavaScriptResult(rec.IdentificationJavascript);
+                if (!Boolean.Parse(result))
                 {
-                    doc = srNode.Representation.Adapter.Technical as IHtmlDocumentTechnical;
-                }
-                catch
-                {
-                    return false;
+                    successfulRecommendations.RemoveAll(r => r.id == rec.id);
                 }
             }
+            #endregion
 
+            #region Show recommendations (somehow)
 
-            // Look for recommendations
-
-
-
-            // Show recommendations (somehow)
-
-
+            #endregion
 
             return false;
         }

@@ -16,6 +16,13 @@ namespace Tricentis.CrowdIQ.Server.Data.Mock
                 engine="html",
                 id = Guid.NewGuid(),
                 IdentificationJavascript="typeof Ext != \"undefined\";"
+            },
+            new RecommendationResponse
+            {
+                customizationName="Extended JavaScript UI V2",
+                engine="html",
+                id = Guid.NewGuid(),
+                IdentificationJavascript="return true;"
             }
         };
         public List<RecommendationResponse> Recomendations
