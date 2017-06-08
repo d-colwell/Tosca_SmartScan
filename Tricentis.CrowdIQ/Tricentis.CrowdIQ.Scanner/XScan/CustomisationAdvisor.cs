@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Tricentis.Automation.Creation;
 using Tricentis.Automation.Engines.Technicals.Html;
@@ -72,13 +73,24 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             #endregion
 
             #region Show recommendations (somehow)
-
-            controller.ShowInfoMessage(new Random().Next().ToString());
-
-
+            if(successfulRecommendations.Any())
+            {
+                ParameterizedThreadStart pts = new ParameterizedThreadStart(ThreadStart);
+                Thread t = new Thread(ThreadStart);
+                t.SetApartmentState(ApartmentState.STA);
+                t.Start(null);
+                t.Join();
+            }
             #endregion
-
-            return false;
+            return true;
         }
+    private void ThreadStart(object target)
+    {
+        //if (app == null)
+        //    app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
+        var configWindow = new CrowdIQ.Controls.MainWindow();
+        //app.Run(configWindow);
+        configWindow.ShowDialog();
     }
+}
 }
