@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,16 +36,87 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 return false;
             string tricentisHomePath = Environment.ExpandEnvironmentVariables("%tricentis_home%");
             string registerFile = Path.Combine(tricentisHomePath, Globals.REGISTER_FILE);
-            if(!File.Exists(registerFile))
+            if (!File.Exists(registerFile))
             {
-                //WORKING HERE
+                RecommendationRegister tempRegister = new RecommendationRegister();
+                File.WriteAllText(registerFile, JsonConvert.SerializeObject(tempRegister));
+            }
+            RecommendationRegister register = JsonConvert.DeserializeObject<RecommendationRegister>(File.ReadAllText(registerFile));
+
+
+
+            var allRecommendations = GetRecomendations("html");
+            var notYetInstalled = allRecommendations.Where(r => !register.InstalledCustomisations.Any(ic => ic.ID == r.id));
+            var outdatedRecomendations = allRecommendations
+                .Select(nr => new { Current = register.InstalledCustomisations.FirstOrDefault(x => x.ID == nr.id), New = nr })
+                .Where(c => c.Current != null && c.New != null && string.Compare(c.Current.Version, c.New.Version) > 0);
+
+            var uri = new Uri(doc.Url);
+            string host = uri.Host;
+
+            bool recommendationHasBeenMadeBefore = HasRequestBeenMadeBefore(allRecommendations, register, host);
+            if (recommendationHasBeenMadeBefore)
+                return false;
+
+            var validRecommendations = notYetInstalled.Where(x => IsValidForDoc(x, doc));
+
+            if (!validRecommendations.Any())
+                return false;
+
+            ParameterizedThreadStart pts = new ParameterizedThreadStart(ThreadStart);
+            Thread t = new Thread(ThreadStart);
+            t.SetApartmentState(ApartmentState.STA);
+            Controls.WindowParameters winParam = new Controls.WindowParameters
+            {
+                Customisations = validRecommendations.Select(
+                    r => new Controls.Customisation
+                    {
+                        ID = r.id,
+                        Name = r.customizationName,
+                        Download = false
+                    }).ToList()
+            };
+            t.Start(winParam);
+            t.Join();
+
+            foreach (var param in winParam.Customisations.Where(x => x.Download))
+            {
+                DownloadCustomisation(param.ID, param.Name);
+            }
+            controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
+            t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
+            t.Abort();                          // Abort and let thread handle termination of itself
+            GC.Collect();                       // Now call GC
+
+            return true;
+        }
+        private bool HasRequestBeenMadeBefore(IEnumerable<RecommendationResponse> recommendations, RecommendationRegister register, string currentHost)
+        {
+            string jsonValue = JsonConvert.SerializeObject(recommendations);
+            byte[] hash;
+            using (MD5 md5 = MD5.Create())
+            {
+                hash = md5.ComputeHash(Encoding.UTF8.GetBytes(jsonValue));
+            }
+            string hashString = Encoding.Default.GetString(hash);
+            var recommendation = register.RecommendationsRegister.FirstOrDefault(x => x.PageURL == currentHost && x.RecommendationHash == hashString);
+            if (recommendation != null)
+            {
+                return true;
             }
 
-            IEnumerable<RecommendationResponse> recommendationResponses = null;
-            List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
-
-            #region  Retrieve information/hints
-            String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
+            register.RecommendationsRegister.Add(new RecommendationRecord
+            {
+                DateRecomended = DateTime.Now,
+                PageURL = currentHost,
+                RecommendationHash = hashString
+            });
+            return false;
+        }
+        private IEnumerable<RecommendationResponse> GetRecomendations(string engine)
+        {
+            IEnumerable<RecommendationResponse> recommendations;
+            String url = "http://localhost:50826/", urlParameters = $"/api/recommendation/?engine={engine}";
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(url);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -54,67 +126,20 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 if (response.IsSuccessStatusCode)
                 {
                     String responseContent = response.Content.ReadAsStringAsync().Result;
-                    recommendationResponses = JsonConvert.DeserializeObject<IEnumerable<RecommendationResponse>>(responseContent);
+                    recommendations = JsonConvert.DeserializeObject<IEnumerable<RecommendationResponse>>(responseContent);
+                    return recommendations;
                 }
                 else
-                {   // Alert user... or maybe do nothing and pretend nothing happened                    
-                    return false;
+                {   // Alert user... or maybe do nothing and pretend nothing happened                   
                 }
             }
-            catch
+            catch (Exception)
             {
-                return false;
+                //NOM NOM NOM 
+                //tasty exceptions
             }
-            #endregion
-
-            #region Look for recommendations
-            foreach (RecommendationResponse rec in recommendationResponses)
-            {
-                String result = doc.EntryPoint.GetJavaScriptResult(rec.IdentificationJavascript);
-                Boolean isValid;
-                Boolean.TryParse(result, out isValid);
-                if (isValid)
-                {
-                    successfulRecommendations.Add(rec);
-                }
-            }
-            #endregion
-
-            #region Show recommendations (somehow)
-            if (successfulRecommendations.Any())
-            {
-                ParameterizedThreadStart pts = new ParameterizedThreadStart(ThreadStart);
-                Thread t = new Thread(ThreadStart);
-                t.SetApartmentState(ApartmentState.STA);
-                Controls.WindowParameters winParam = new Controls.WindowParameters
-                {
-                    Customisations = successfulRecommendations.Select(
-                        r => new Controls.Customisation
-                        {
-                            ID = r.id,
-                            Name = r.customizationName,
-                            Download = false
-                        }).ToList()
-                };
-                t.Start(winParam);
-                t.Join();
-
-                foreach (var param in winParam.Customisations.Where(x=>x.Download))
-                {
-                    DownloadCustomisation(param.ID, param.Name);
-                }
-                controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
-                t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
-                t.Abort();                          // Abort and let thread handle termination of itself
-                GC.Collect();                       // Now call GC
-
-
-
-            }
-            #endregion
-            return true;
+            return new List<RecommendationResponse>();
         }
-
         private void DownloadCustomisation(Guid id, string name)
         {
             var uri = new Uri($"http://localhost:50826/api/recommendation/{id}");
@@ -133,7 +158,22 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             }
             File.WriteAllBytes(Path.Combine(directory, fileName + ".dll"), btyeContent);
         }
+        private bool IsValidForDoc(RecommendationResponse recommendation, IHtmlDocumentTechnical doc)
+        {
+            try
+            {
+                String result = doc.EntryPoint.GetJavaScriptResult(recommendation.IdentificationJavascript);
+                Boolean isValid;
+                if (!Boolean.TryParse(result, out isValid))
+                    return false;
+                return isValid;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
 
+        }
         private void ThreadStart(object target)
         {
             var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
