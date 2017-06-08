@@ -93,9 +93,11 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 };
                 t.Start(winParam);
                 t.Join();
-                t.DisableComObjectEagerCleanup();
-                t.Abort();
-                GC.Collect(3);
+
+                
+                t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
+                t.Abort();                          // Abort and let thread handle termination of itself
+                GC.Collect();                       // Now call GC
             }
             #endregion
             return true;
