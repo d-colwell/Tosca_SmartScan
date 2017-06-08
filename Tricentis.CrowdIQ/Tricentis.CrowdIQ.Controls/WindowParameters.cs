@@ -16,5 +16,8 @@ namespace Tricentis.CrowdIQ.Controls
         public Guid ID { get; set; }
         public string Name { get; set; }
         public bool Download { get; set; }
+        public string MinToscaVersion { get; set; }
+        public string MaxToscaVersion { get; set; }
+        public string Version { get; set; }
     }
 }

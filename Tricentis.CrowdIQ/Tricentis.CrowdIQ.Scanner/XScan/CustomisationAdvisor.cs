@@ -29,7 +29,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
         {
             validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode, controller));
         }
-
+        private bool KEEP_HASTLING = true;
         private String host = @"http://localhost:50826/";
 
         private bool RecommendCustomisations(IScanNode resultNode, IResultController controller)
@@ -44,12 +44,14 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             string registerFile = Path.Combine(tricentisHomePath, Globals.REGISTER_FILE);
             if (!File.Exists(registerFile))
             {
-                RecommendationRegister tempRegister = new RecommendationRegister();
+                RecommendationRegister tempRegister = new RecommendationRegister
+                {
+                    InstalledCustomisations = new List<InstalledCustomisation>(),
+                    RecommendationsRegister = new List<RecommendationRecord>()
+                };
                 File.WriteAllText(registerFile, JsonConvert.SerializeObject(tempRegister));
             }
             RecommendationRegister register = JsonConvert.DeserializeObject<RecommendationRegister>(File.ReadAllText(registerFile));
-
-
 
             var allRecommendations = GetRecomendations("html");
             var notYetInstalled = allRecommendations.Where(r => !register.InstalledCustomisations.Any(ic => ic.ID == r.id));
@@ -60,7 +62,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             var uri = new Uri(doc.Url);
             string pageHost = uri.Host;
 
-            bool recommendationHasBeenMadeBefore = HasRequestBeenMadeBefore(allRecommendations, register, pageHost);
+            bool recommendationHasBeenMadeBefore = HasRequestBeenMadeBefore(allRecommendations, register, pageHost,!KEEP_HASTLING);
             if (recommendationHasBeenMadeBefore)
                 return false;
 
@@ -84,19 +86,28 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             };
             t.Start(winParam);
             t.Join();
-
-                foreach (var param in winParam.Customisations.Where(x => x.Download))
+            bool hasBeenDownloaded = false;
+            foreach (var param in winParam.Customisations.Where(x => x.Download))
+            {
+                string file = DownloadCustomisation(param.ID, param.Name);
+                register.InstalledCustomisations.Add(new InstalledCustomisation
                 {
-                    DownloadCustomisation(param.ID, param.Name);
-                }
-                controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
+                    FilePath = file,
+                    ID = param.ID,
+                    InstallDate = DateTime.Now,
+                    MaxSupportedToscaVersion = param.MaxToscaVersion,
+                    MinSupportedToscaVersion = param.MinToscaVersion,
+                    Version = param.Version
+                });
+                hasBeenDownloaded = true;
             }
-            #endregion
-
-            return true;
+            if (hasBeenDownloaded)
+                controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
+            File.WriteAllText(registerFile, JsonConvert.SerializeObject(register));
+            return false;
         }
-            
-        private bool HasRequestBeenMadeBefore(IEnumerable<RecommendationResponse> recommendations, RecommendationRegister register, string currentHost)
+
+        private bool HasRequestBeenMadeBefore(IEnumerable<RecommendationResponse> recommendations, RecommendationRegister register, string currentHost, bool addIfNotMade = false)
         {
             string jsonValue = JsonConvert.SerializeObject(recommendations);
             byte[] hash;
@@ -110,13 +121,13 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             {
                 return true;
             }
-
-            register.RecommendationsRegister.Add(new RecommendationRecord
-            {
-                DateRecomended = DateTime.Now,
-                PageURL = currentHost,
-                RecommendationHash = hashString
-            });
+            if (addIfNotMade)
+                register.RecommendationsRegister.Add(new RecommendationRecord
+                {
+                    DateRecomended = DateTime.Now,
+                    PageURL = currentHost,
+                    RecommendationHash = hashString
+                });
             return false;
         }
         private IEnumerable<RecommendationResponse> GetRecomendations(string engine)
@@ -146,7 +157,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             }
             return new List<RecommendationResponse>();
         }
-        private void DownloadCustomisation(Guid id, string name)
+        private string DownloadCustomisation(Guid id, string name)
         {
             var uri = new Uri(host + $"/api/recommendation/{id}");
 
@@ -163,6 +174,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                     File.Delete(Path.Combine(directory, fileName + ".dll"));
             }
             File.WriteAllBytes(Path.Combine(directory, fileName + ".dll"), btyeContent);
+            return Path.Combine(directory, fileName + ".dll");
         }
         private bool IsValidForDoc(RecommendationResponse recommendation, IHtmlDocumentTechnical doc)
         {
