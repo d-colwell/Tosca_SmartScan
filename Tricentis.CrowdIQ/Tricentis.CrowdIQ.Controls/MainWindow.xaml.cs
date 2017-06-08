@@ -28,6 +28,7 @@ namespace Tricentis.CrowdIQ.Controls
         {
             InitializeComponent();
             this.Activate();
+            DataContext = this;
         }
 
         public MainWindow(WindowParameters parameters) : this()
@@ -50,6 +51,10 @@ namespace Tricentis.CrowdIQ.Controls
         public static readonly DependencyProperty CustomisationsProperty =
             DependencyProperty.Register("Customisations", typeof(ObservableCollection<CustomisationViewModel>), typeof(MainWindow), new PropertyMetadata(null));
 
+        public IList<Customisation> GetCustomisations()
+        {
+            return customisations;
+        }
 
     }
 }
