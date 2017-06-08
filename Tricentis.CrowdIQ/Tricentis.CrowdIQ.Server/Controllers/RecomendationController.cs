@@ -10,10 +10,10 @@ using Microsoft.AspNetCore.Hosting;
 namespace Tricentis.CrowdIQ.Server.Controllers
 {
     [Route("api/[controller]")]
-    public class RecomendationController : Controller
+    public class RecommendationController : Controller
     {
         IHostingEnvironment host;
-        public RecomendationController(IHostingEnvironment host)
+        public RecommendationController(IHostingEnvironment host)
         {
             this.host = host;
         }
