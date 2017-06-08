@@ -13,9 +13,9 @@ namespace Tricentis.CrowdIQ.Server.Controllers
     {
         // GET: api/values
         [HttpGet]
-        public IEnumerable<string> Get(GetRecomendationsRequest request)
+        public IEnumerable<Recomendation> Get(GetRecomendationsRequest request)
         {
-            return new string[] { "value1", "value2" };
+            return Data.MockDataProvider.Instance.Recomendation.Recomendations.Where(x => x.engine == request.engine);
         }
 
         // GET api/values/5
