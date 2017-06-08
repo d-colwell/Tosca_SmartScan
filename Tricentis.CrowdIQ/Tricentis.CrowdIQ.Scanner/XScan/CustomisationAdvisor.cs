@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -32,6 +33,9 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
             if (doc == null)
                 return false;
+
+            
+
             IEnumerable<RecommendationResponse> recommendationResponses = null;
             List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
 
@@ -94,13 +98,39 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 t.Start(winParam);
                 t.Join();
 
-                
+                foreach (var param in winParam.Customisations.Where(x=>x.Download))
+                {
+                    DownloadCustomisation(param.ID, param.Name);
+                }
+                controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
                 t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
                 t.Abort();                          // Abort and let thread handle termination of itself
                 GC.Collect();                       // Now call GC
+
+
+
             }
             #endregion
             return true;
+        }
+
+        private void DownloadCustomisation(Guid id, string name)
+        {
+            var uri = new Uri($"http://localhost:50826/api/recommendation/{id}");
+
+            HttpClient client = new HttpClient();
+            var result = client.GetAsync(uri).Result;
+            byte[] btyeContent = result.Content.ReadAsByteArrayAsync().Result;
+            string directory = Environment.ExpandEnvironmentVariables("%tricentis_home%");
+            string fileName = name.Replace(" ", "");
+
+            if (File.Exists(Path.Combine(directory, fileName + ".dll")))
+            {
+                fileName = $"{fileName}-NEW";
+                if (File.Exists(Path.Combine(directory, fileName + ".dll")))
+                    File.Delete(Path.Combine(directory, fileName + ".dll"));
+            }
+            File.WriteAllBytes(Path.Combine(directory, fileName + ".dll"), btyeContent);
         }
 
         private void ThreadStart(object target)
