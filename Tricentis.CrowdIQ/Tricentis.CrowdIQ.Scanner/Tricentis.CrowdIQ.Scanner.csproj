@@ -61,7 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenericAdapter.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="ContractObjects\Recomendation\GetRecomendationsRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XScan\CustomisationAdvisor.cs" />
