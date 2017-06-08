@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Tricentis.CrowdIQ.Scanner
 {
-    public static class Globals
+    public class Globals
     {
-
+        public static string REGISTER_FILE = "customisations.json";
     }
 }

@@ -26,16 +26,23 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
     {
         public CustomisationAdvisor(MapDefaultIdsTaskConfig taskConfig, IResultController controller, Validator validator) : base(taskConfig, controller, validator)
         {
-            validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode));
+            validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode, controller));
         }
 
         private String host = @"http://localhost:50826/";
 
-        private bool RecommendCustomisations(IScanNode resultNode)
+        private bool RecommendCustomisations(IScanNode resultNode, IResultController controller)
         {
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
             if (doc == null)
                 return false;
+            string tricentisHomePath = Environment.ExpandEnvironmentVariables("%tricentis_home%");
+            string registerFile = Path.Combine(tricentisHomePath, Globals.REGISTER_FILE);
+            if(!File.Exists(registerFile))
+            {
+                //WORKING HERE
+            }
+
             IEnumerable<RecommendationResponse> recommendationResponses = null;
             List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
 

@@ -11,5 +11,9 @@ namespace Tricentis.CrowdIQ.Server.Models.Recommendation
         public string engine { get; set; }
         public string customizationName { get; set; }
         public string IdentificationJavascript { get; set; }
+
+        public string MinToscaVersion { get; set; }
+        public string MaxToscaVersion { get; set; }
+        public string Version { get; set; }
     }
 }

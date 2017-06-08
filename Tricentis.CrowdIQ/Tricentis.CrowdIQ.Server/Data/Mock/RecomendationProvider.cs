@@ -15,14 +15,20 @@ namespace Tricentis.CrowdIQ.Server.Data.Mock
                 customizationName="Extended JavaScript UI",
                 engine="html",
                 id = Guid.NewGuid(),
-                IdentificationJavascript="return typeof Ext != \"undefined\";"
+                IdentificationJavascript="return typeof Ext != \"undefined\";",
+                MaxToscaVersion = "10.2",
+                MinToscaVersion = "10.0",
+                Version = "0.9"
             },
             new RecommendationResponse
             {
                 customizationName="Extended JavaScript UI V2",
                 engine="html",
                 id = Guid.NewGuid(),
-                IdentificationJavascript="return true;"
+                IdentificationJavascript="return true;",
+                MaxToscaVersion = "10.2",
+                MinToscaVersion = "10.1",
+                Version = "0.9"
             }
         };
         public List<RecommendationResponse> Recomendations
