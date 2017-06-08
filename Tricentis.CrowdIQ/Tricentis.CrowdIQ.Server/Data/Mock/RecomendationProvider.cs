@@ -8,11 +8,11 @@ namespace Tricentis.CrowdIQ.Server.Data.Mock
 {
     public class RecomendationProvider
     {
-        private List<Recomendation> recomendations = new List<Recomendation>
+        private List<RecomendationResponse> recomendations = new List<RecomendationResponse>
         {
 
         };
-        public List<Recomendation> Recomendations
+        public List<RecomendationResponse> Recomendations
         {
             get { return recomendations; }
         } 
