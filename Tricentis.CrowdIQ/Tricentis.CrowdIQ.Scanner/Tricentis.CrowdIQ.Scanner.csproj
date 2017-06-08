@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\TRICENTIS\Tosca Testsuite\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -57,9 +61,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenericAdapter.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="ContractObjects\Recomendation\GetRecomendationsRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XScan\CustomisationAdvisor.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
