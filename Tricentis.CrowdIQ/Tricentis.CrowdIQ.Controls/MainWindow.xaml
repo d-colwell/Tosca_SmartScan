@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Tricentis.CrowdIQ.Controls"
         mc:Ignorable="d"
-        Title="Customisations Available" Height="Auto" Width="525">
+        Title="Customisations Available" Height="Auto" Width="525" d:DesignHeight="479.024">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0">Good News! Customisations are available for this application!</TextBlock>
         <ListView ItemsSource="{Binding Customisations}" Grid.Row="1">
@@ -28,5 +29,10 @@
                 </GridView>
             </ListView.View>
         </ListView>
+        <StackPanel Orientation="Horizontal" Grid.Row="2" FlowDirection="RightToLeft">
+            <Button x:Name="btnClose"  Content="Close" HorizontalAlignment="Left" Width="75" Margin="3" Click="btnClose_Click" />
+            <Button x:Name="btnDownload" Content="Download" HorizontalAlignment="Right" Width="75" Margin="3" Click="btnDownload_Click" />
+        </StackPanel>
+
     </Grid>
 </Window>

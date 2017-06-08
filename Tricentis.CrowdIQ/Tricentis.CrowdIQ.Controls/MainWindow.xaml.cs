@@ -27,6 +27,8 @@ namespace Tricentis.CrowdIQ.Controls
         public MainWindow()
         {
             InitializeComponent();
+
+            DialogResult = false;
             this.Activate();
             DataContext = this;
         }
@@ -56,5 +58,16 @@ namespace Tricentis.CrowdIQ.Controls
             return customisations;
         }
 
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            this.Close();
+        }
+
+        private void btnDownload_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+            this.Close();
+        }
     }
 }
