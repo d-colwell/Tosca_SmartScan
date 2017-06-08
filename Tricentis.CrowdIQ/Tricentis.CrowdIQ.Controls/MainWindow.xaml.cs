@@ -24,5 +24,10 @@ namespace Tricentis.CrowdIQ.Controls
         {
             InitializeComponent();
         }
+
+        public MainWindow(WindowParameters parameters) : this()
+        {
+
+        }
     }
 }
