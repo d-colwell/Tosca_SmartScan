@@ -35,10 +35,13 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
         {
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
             if (doc == null)
+            {
                 return false;
+            }
+
             string tricentisHomePath = Environment.ExpandEnvironmentVariables("%tricentis_home%");
             string registerFile = Path.Combine(tricentisHomePath, Globals.REGISTER_FILE);
-            if(!File.Exists(registerFile))
+            if (!File.Exists(registerFile))
             {
                 //WORKING HERE
             }
@@ -74,8 +77,11 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             foreach (RecommendationResponse rec in recommendationResponses)
             {
                 String result = doc.EntryPoint.GetJavaScriptResult(rec.IdentificationJavascript);
-                Boolean isValid;
-                Boolean.TryParse(result, out isValid);
+                Boolean isValid = false;
+                if (!Boolean.TryParse(result, out isValid))
+                {
+                    continue;
+                }
                 if (isValid)
                 {
                     successfulRecommendations.Add(rec);
@@ -92,27 +98,21 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 Controls.WindowParameters winParam = new Controls.WindowParameters
                 {
                     Customisations = successfulRecommendations.Select(
-                        r => new Controls.Customisation
-                        {
-                            ID = r.id,
-                            Name = r.customizationName,
-                            Download = false
-                        }).ToList()
+                                            r => new Controls.Customisation
+                                            {
+                                                ID = r.id,
+                                                Name = r.customizationName,
+                                                Download = false
+                                            }).ToList()
                 };
                 t.Start(winParam);
                 t.Join();
 
-                foreach (var param in winParam.Customisations.Where(x=>x.Download))
+                foreach (var param in winParam.Customisations.Where(x => x.Download))
                 {
                     DownloadCustomisation(param.ID, param.Name);
                 }
                 controller.ShowInfoMessage("New customisations have been downloaded. Please restart Tosca");
-                t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
-                t.Abort();                          // Abort and let thread handle termination of itself
-                GC.Collect();                       // Now call GC
-
-
-
             }
             #endregion
 
@@ -141,7 +141,8 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
         private void ThreadStart(object target)
         {
             var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
-            configWindow.ShowDialog();
+            var app = new System.Windows.Application();
+            app.Run(configWindow);
         }
     }
 }
