@@ -95,6 +95,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 t.Join();
                 t.DisableComObjectEagerCleanup();
                 t.Abort();
+                GC.Collect(3);
             }
             #endregion
             return true;
