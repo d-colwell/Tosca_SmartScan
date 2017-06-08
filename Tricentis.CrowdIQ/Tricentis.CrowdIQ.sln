@@ -7,11 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tricentis.CrowdIQ.Scanner",
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Tricentis.CrowdIQ.Server", "Tricentis.CrowdIQ.Server\Tricentis.CrowdIQ.Server.xproj", "{23A8B669-7691-40C4-A0C4-59F5DAC74091}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customisations", "Customisations", "{646D6277-3D63-41A4-BA22-B34C7CA67057}"
-	ProjectSection(SolutionItems) = preProject
-		D:\Source\svn-ToolsAndCustomers\trunk\SharedProjects\ExtJSEngine\ExtJSEngine\bin\ExtJSEngine.dll = D:\Source\svn-ToolsAndCustomers\trunk\SharedProjects\ExtJSEngine\ExtJSEngine\bin\ExtJSEngine.dll
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
