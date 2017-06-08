@@ -71,6 +71,12 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tricentis.CrowdIQ.Controls\Tricentis.CrowdIQ.Controls.csproj">
+      <Project>{f14387cc-c3e0-44b9-8645-59c5924d1eb9}</Project>
+      <Name>Tricentis.CrowdIQ.Controls</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
