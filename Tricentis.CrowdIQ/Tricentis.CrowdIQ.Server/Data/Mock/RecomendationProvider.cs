@@ -15,7 +15,7 @@ namespace Tricentis.CrowdIQ.Server.Data.Mock
                 customizationName="Extended JavaScript UI",
                 engine="html",
                 id = Guid.NewGuid(),
-                IdentificationJavascript="typeof Ext != \"undefined\";"
+                IdentificationJavascript="return typeof Ext != \"undefined\";"
             },
             new RecommendationResponse
             {
