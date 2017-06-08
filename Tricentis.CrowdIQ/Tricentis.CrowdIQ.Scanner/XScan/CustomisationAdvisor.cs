@@ -24,20 +24,22 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
     {
         public CustomisationAdvisor(MapDefaultIdsTaskConfig taskConfig, IResultController controller, Validator validator) : base(taskConfig, controller, validator)
         {
-            validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode, ref controller));
+            validator.AssertTrue(RecommendCustomisations(taskConfig.ResultNode));
         }
 
-        private bool RecommendCustomisations(IScanNode resultNode, ref IResultController controller)
+        private bool RecommendCustomisations(IScanNode resultNode)
         {
             IHtmlDocumentTechnical doc = ((ScanRepresentationNode)resultNode).Representation.Adapter.Technical as IHtmlDocumentTechnical;
             if (doc == null)
+            {
                 return false;
+            }
+
             IEnumerable<RecommendationResponse> recommendationResponses = null;
             List<RecommendationResponse> successfulRecommendations = new List<RecommendationResponse>();
 
-            String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
-
             #region  Retrieve information/hints
+            String url = "http://localhost:50826/", urlParameters = "/api/recommendation/?engine=html";
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(url);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -50,8 +52,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                     recommendationResponses = JsonConvert.DeserializeObject<IEnumerable<RecommendationResponse>>(responseContent);
                 }
                 else
-                {
-                    // Alert user... or maybe do nothing
+                {   // Alert user... or maybe do nothing and pretend nothing happened                    
                     return false;
                 }
             }
@@ -59,7 +60,6 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
             {
                 return false;
             }
-
             #endregion
 
             #region Look for recommendations
@@ -94,7 +94,6 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
                 t.Start(winParam);
                 t.Join();
 
-                
                 t.DisableComObjectEagerCleanup();   // Prevent GC from attempting to clean up
                 t.Abort();                          // Abort and let thread handle termination of itself
                 GC.Collect();                       // Now call GC
@@ -105,10 +104,7 @@ namespace Tricentis.CrowdIQ.Scanner.XScan
 
         private void ThreadStart(object target)
         {
-            //if (app == null)
-            //    app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
             var configWindow = new CrowdIQ.Controls.MainWindow(target as Controls.WindowParameters);
-            //app.Run(configWindow);
             configWindow.ShowDialog();
         }
     }
